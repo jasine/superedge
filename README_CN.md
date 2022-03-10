@@ -8,7 +8,7 @@ SuperEdge是Kubernetes原生的边缘容器方案，它将Kubernetes强大的容
 
 SuperEdge可以帮助您很方便地把分布在各处的计算资源放到一个Kubernetes集群中管理，包括但不限于：边缘云计算资源、私有云资源、现场设备，打造属于您的边缘PaaS平台。 
 
-SuperEdge支持所有Kubernetes资源类型、API接口、使用方式、运维工具，无额外的学习成本。也兼容其他云原生项目，如：Promethues，使用者可以结合其他所需的云原生项目一起使用。
+SuperEdge支持所有Kubernetes资源类型、API接口、使用方式、运维工具，无额外的学习成本。也兼容其他云原生项目，如：Prometheus，使用者可以结合其他所需的云原生项目一起使用。
 
 SuperEdge项目由以下公司共同发起：腾讯、Intel、VMware、虎牙直播、寒武纪、首都在线和美团。
 
@@ -46,14 +46,15 @@ SuperEdge具有如下特性:
 ## 快速入门指南
 
 -   下载安装包
-> 注意修改"arch=amd64"参数，目前支持[amd64, arm64], 下载自己机器对应的体系结构，其他参数不变
+> 注意修改"arch=amd64"参数，目前支持[amd64, arm64], kubernetes版本可选[1.20.6, 1.18.2], 注意下载自己机器对应的体系结构，其他参数不变
+
 ```shell
-arch=amd64 version=v0.6.0 && rm -rf edgeadm-linux-* && wget https://superedge-1253687700.cos.ap-guangzhou.myqcloud.com/$version/$arch/edgeadm-linux-$arch-$version.tgz && tar -xzvf edgeadm-linux-* && cd edgeadm-linux-$arch-$version && ./edgeadm
+arch=amd64 version=v0.7.0 kubernetesVersion=1.20.6 && rm -rf edgeadm-linux-* && wget https://superedge-1253687700.cos.ap-guangzhou.myqcloud.com/$version/$arch/edgeadm-linux-$arch-$version-k8s-$kubernetesVersion.tgz && tar -xzvf edgeadm-linux-* && cd edgeadm-linux-$arch-$version-k8s-$kubernetesVersion && ./edgeadm
 ```
 
 -   安装边缘 Kubernetes master 节点
 ```shell
-./edgeadm init --kubernetes-version=1.18.2 --image-repository superedge.tencentcloudcr.com/superedge --service-cidr=10.96.0.0/12 --pod-network-cidr=192.168.0.0/16 --install-pkg-path ./kube-linux-*.tar.gz --apiserver-cert-extra-sans=<Master节点外网IP> --apiserver-advertise-address=<Master节点内网IP> --enable-edge=true
+./edgeadm init --kubernetes-version=1.20.6 --image-repository superedge.tencentcloudcr.com/superedge --service-cidr=10.96.0.0/12 --pod-network-cidr=192.168.0.0/16 --install-pkg-path ./kube-linux-*.tar.gz --apiserver-cert-extra-sans=<Master节点外网IP> --apiserver-advertise-address=<Master节点内网IP> --enable-edge=true
 ```
 
 -   Join 边缘节点

@@ -77,7 +77,7 @@ func NewGridControllerManagerCommand() *cobra.Command {
 			//	klog.Errorf("failed to set feature gate, %v", err)
 			//}
 			var parentCrdClient *crdClientset.Clientset
-			var once   sync.Once
+			var once sync.Once
 			var electionChecker *leaderelection.HealthzAdaptor
 
 			kubeconfig, err := clientcmd.BuildConfigFromFlags(o.Master, o.Kubeconfig)
@@ -183,7 +183,7 @@ func runController(parent context.Context,
 		Version: superedge.Version,
 		Kind:    serviceutil.ControllerKind.Kind,
 	}); err != nil {
-		klog.Fatalf("Create and wait for CRDs ready failed: %v", err)
+		klog.Errorf("Create and wait for CRDs ready failed: %v", err)
 	}
 
 	utilruntime.Must(scheme.AddToScheme(scheme.Scheme))

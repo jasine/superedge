@@ -54,8 +54,8 @@
 
 >   注意修改"arch=amd64"参数，目前支持[amd64, arm64], 下载自己机器对应的体系结构，其他参数不变
 
-```powershell
-arch=amd64 version=v0.6.0 && rm -rf edgeadm-linux-* && wget https://superedge-1253687700.cos.ap-guangzhou.myqcloud.com/$version/$arch/edgeadm-linux-$arch-$version.tgz && tar -xzvf edgeadm-linux-* && cd edgeadm-linux-$arch-$version && ./edgeadm
+```
+arch=amd64 version=v0.7.0 kubernetesVersion=1.20.6 && rm -rf edgeadm-linux-* && wget https://superedge-1253687700.cos.ap-guangzhou.myqcloud.com/$version/$arch/edgeadm-linux-$arch-$version-k8s-$kubernetesVersion.tgz && tar -xzvf edgeadm-linux-* && cd edgeadm-linux-$arch-$version-k8s-$kubernetesVersion && ./edgeadm
 ```
 >   目前支持amd64、arm64两个体系，其他体系可自行编译edgeadm和制作相应体系安装包，具体可参考 [一键安装边缘Kubernetes集群](https://github.com/superedge/superedge/blob/main/docs/installation/install_edge_kubernetes_CN.md)中的5. 自定义Kubernetes静态安装包
 
@@ -167,7 +167,7 @@ Run 'kubectl get nodes' on the control-plane to see this node join the cluster.
 ```
 执行过程中如果出现问题会直接返回相应的错误信息，并中断节点的添加，可使用`./edgeadm reset`命令回滚加入节点的操作，重新 join。
 
->    提示：边缘节点 join 成功后都会被打上标签: `superedge.io/edge-node=enable`，方便后续应用通过 nodeSelector 选择应用调度到边缘节点；
+>    提示：边缘节点 join 成功后都会被打上标签: `superedge.io/node-edge=enable`，方便后续应用通过 nodeSelector 选择应用调度到边缘节点；
 
 以上操作如有问题，可以加入到SuperEdge的[Slack](https://join.slack.com/t/superedge-workspace/shared_invite/zt-ldxnm7er-ptdpCXthOct_dYrzyXM3pw)、[Google论坛](https://groups.google.com/g/superedge)、[微信群](https://github.com/superedge/superedge)和我们进行交流，也可在社区提[Issues](https://github.com/superedge/superedge/issues)给我们反馈问题。
 

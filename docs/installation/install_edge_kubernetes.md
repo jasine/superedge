@@ -132,9 +132,10 @@ This program has the following advantages:
 
 >   Choose installation package according to your installation node CPU architecture [amd64, arm64]
 
-```shell
-arch=amd64 version=v0.6.0 && rm -rf edgeadm-linux-* && wget https://superedge-1253687700.cos.ap-guangzhou.myqcloud.com/$version/$arch/edgeadm-linux-$arch-$version.tgz && tar -xzvf edgeadm-linux-* && cd edgeadm-linux-$arch-$version && ./edgeadm
 ```
+arch=amd64 version=v0.7.0 kubernetesVersion=1.20.6 && rm -rf edgeadm-linux-* && wget https://superedge-1253687700.cos.ap-guangzhou.myqcloud.com/$version/$arch/edgeadm-linux-$arch-$version-k8s-$kubernetesVersion.tgz && tar -xzvf edgeadm-linux-* && cd edgeadm-linux-$arch-$version-k8s-$kubernetesVersion && ./edgeadm
+```
+
 The installation package is about 200M. For detailed information about the installation package, please refer to **5. Custom Kubernetes static installation package**.
 
 >   If downloading the installation package is slow, you can directly check the corresponding [SuperEdge version](https://github.com/superedge/superedge/tags), download `edgeadm-linux-amd64/arm64-*.0.tgz`, and Decompression is the same.
@@ -163,6 +164,9 @@ On：
 -   --image-repository: image repository address
 
     >   If superedge.tencentcloudcr.com/superedge is slower, you can switch to other accelerated mirror warehouses, as long as you can pull down kube-apiserver, kube-controller-manager, kube-scheduler, kube-proxy, etcd, pause, etc. mirrors.
+
+-  --runtime: node container runtime to install
+    >   If you want install containerd runtime, please add `--runtime=containerd` flags, and replace offline package url `https://superedge-1253687700.cos.ap-guangzhou.myqcloud.com/$version/$arch/edgeadm-linux-containerd-$arch-$version.tgz`
 
 Other parameters have the same meaning as Kubeadm and can be configured according to kubeadm's requirements.
 
@@ -247,7 +251,7 @@ Run 'kubectl get nodes' on the control-plane to see this node join the cluster.
 ```
 If there is a problem during the execution, the corresponding error message will be returned directly, and the addition of the node will be interrupted. You can use the `./edgeadm reset` command to roll back the operation of joining the node and rejoin.
 
-> Tip: If the edge node is joined, after the edge node joins successfully, the edge node will be labeled with a label: `superedge.io/edge-node=enable`, which is convenient for subsequent applications to use nodeSelector to select the application and schedule to the edge node;
+> Tip: If the edge node is joined, after the edge node joins successfully, the edge node will be labeled with a label: `superedge.io/node-edge=enable`, which is convenient for subsequent applications to use nodeSelector to select the application and schedule to the edge node;
 >
 > Native Kubernetes nodes, like kubeadm's join, do not do anything.
 

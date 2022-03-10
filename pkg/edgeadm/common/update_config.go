@@ -45,6 +45,11 @@ func UpdateKubeConfig(client *kubernetes.Clientset) error {
 		return err
 	}
 
+	if err := UpdateKubernetesEndpointSlice(client); err != nil {
+		klog.Errorf("Update kubernetes endpointSlice, error: %s", err)
+		return err
+	}
+
 	klog.Infof("Update Kubernetes cluster config support marginal autonomy success")
 
 	return nil
@@ -123,7 +128,7 @@ func UpdateKubeProxyKubeconfig(kubeClient kubernetes.Interface) error {
 		return err
 	}
 
-	if err := PatchKubeProxy(kubeClient); err != nil{
+	if err := PatchKubeProxy(kubeClient); err != nil {
 		return err
 	}
 
@@ -220,6 +225,34 @@ func UpdateKubernetesEndpoint(clientSet kubernetes.Interface) error {
 	return nil
 }
 
+func UpdateKubernetesEndpointSlice(clientSet kubernetes.Interface) error {
+	endpointSlice, err := clientSet.DiscoveryV1beta1().EndpointSlices(
+		constant.NamespaceDefault).Get(context.TODO(), constant.KubernetesEndpoint, metav1.GetOptions{})
+	if err != nil {
+		return err
+	}
+
+	// backup original ConfigMap
+	oldEndpointSlice := endpointSlice.DeepCopy()
+	oldEndpointSlice.Name = constant.KubernetesEndpointNoEdge
+	oldEndpointSlice.ResourceVersion = ""
+	if _, err := clientSet.DiscoveryV1beta1().EndpointSlices(
+		constant.NamespaceDefault).Create(context.TODO(), oldEndpointSlice, metav1.CreateOptions{}); err != nil {
+		return err
+	}
+
+	annotations := make(map[string]string)
+	annotations[constant.EdgeLocalPort] = "51003"
+	annotations[constant.EdgeLocalHost] = "127.0.0.1"
+	endpointSlice.Annotations = annotations
+	if _, err := clientSet.DiscoveryV1beta1().EndpointSlices(
+		constant.NamespaceDefault).Update(context.TODO(), endpointSlice, metav1.UpdateOptions{}); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func PatchKubeProxy(clientSet kubernetes.Interface) error {
 	patchAntiAffinity := fmt.Sprintf(constant.KubeProxyPatchJson, constant.EdgeNodeLabelKey, constant.EdgeNodeAntiAffinityAction)
 	patchAffinity := fmt.Sprintf(constant.KubeProxyPatchJson, constant.EdgeNodeLabelKey, constant.EdgeNodeAffinityAction)
@@ -238,9 +271,9 @@ func PatchKubeProxy(clientSet kubernetes.Interface) error {
 func RecoverKubeProxy(clientSet kubernetes.Interface) error {
 	if _, err := clientSet.AppsV1().DaemonSets(constant.NamespaceKubeSystem).Patch(
 		context.TODO(), constant.KubeProxy, types.JSONPatchType, []byte(constant.KubeProxyRecoverJson), metav1.PatchOptions{}); err != nil {
-			return fmt.Errorf("Patching daemonset: %s, error: %v\n", constant.KubeProxy, err)
-		}
-		return nil
+		return fmt.Errorf("Patching daemonset: %s, error: %v\n", constant.KubeProxy, err)
+	}
+	return nil
 }
 func RecoverKubeConfig(client *kubernetes.Clientset) error {
 	if err := RecoverKubeProxyKubeconfig(client); err != nil {
@@ -270,11 +303,11 @@ func RecoverKubeProxyKubeconfig(kubeClient kubernetes.Interface) error {
 		return err
 	}
 	if err := kubeClient.CoreV1().ServiceAccounts(
-		constant.NamespaceEdgeSystem).Delete(context.TODO(), constant.KubeProxy, metav1.DeleteOptions{}); err != nil{
+		constant.NamespaceEdgeSystem).Delete(context.TODO(), constant.KubeProxy, metav1.DeleteOptions{}); err != nil {
 		return err
 	}
 
-	if err := RecoverKubeProxy(kubeClient); err != nil{
+	if err := RecoverKubeProxy(kubeClient); err != nil {
 		return err
 	}
 

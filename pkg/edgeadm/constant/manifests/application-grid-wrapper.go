@@ -127,6 +127,8 @@ spec:
       labels:
         k8s-app: application-grid-wrapper-node
     spec:
+      tolerations:
+      - operator: Exists
       serviceAccount: application-grid-wrapper
       serviceAccountName: application-grid-wrapper
       priorityClassName: system-node-critical
@@ -134,10 +136,10 @@ spec:
       restartPolicy: Always
       nodeSelector:
         kubernetes.io/os: linux 
-        superedge.io/edge-node: enable   # TODO select nodes labeled as edges
+        superedge.io/node-edge: enable   # TODO select nodes labeled as edges
       containers:
         - name: application-grid-wrapper
-          image: superedge.tencentcloudcr.com/superedge/application-grid-wrapper:v0.6.0
+          image: superedge.tencentcloudcr.com/superedge/application-grid-wrapper:v0.7.0
           imagePullPolicy: IfNotPresent
           command:
             - /usr/local/bin/application-grid-wrapper
@@ -145,6 +147,7 @@ spec:
             - --bind-address=127.0.0.1:51006
             - --hostname=$(NODE_NAME)
             - --notify-channel-size=10000
+            - --support-endpointslice=true
           env:
             - name: NODE_NAME
               valueFrom:
@@ -240,7 +243,7 @@ spec:
         - operator: "Exists"
       containers:
         - name: application-grid-wrapper
-          image: superedge.tencentcloudcr.com/superedge/application-grid-wrapper:v0.6.0
+          image: superedge.tencentcloudcr.com/superedge/application-grid-wrapper:v0.7.0
           imagePullPolicy: IfNotPresent
           command:
             - /usr/local/bin/application-grid-wrapper
@@ -249,6 +252,7 @@ spec:
             - --hostname=$(NODE_NAME)
             - --wrapper-in-cluster=false
             - --notify-channel-size=10000
+            - --support-endpointslice=true
           env:
             - name: NODE_NAME
               valueFrom:

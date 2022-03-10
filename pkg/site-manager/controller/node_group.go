@@ -26,7 +26,7 @@ import (
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/klog/v2"
 
-	sitev1 "github.com/superedge/superedge/pkg/site-manager/apis/site/v1"
+	sitev1 "github.com/superedge/superedge/pkg/site-manager/apis/site.superedge.io/v1alpha1"
 	"github.com/superedge/superedge/pkg/site-manager/utils"
 	"github.com/superedge/superedge/pkg/util"
 )
@@ -39,7 +39,15 @@ func (siteManager *SitesManagerDaemonController) addNodeGroup(obj interface{}) {
 		return
 	}
 
-	units, err := utils.GetUnitsByNodeGroup(siteManager.crdClient, nodeGroup)
+	if len(nodeGroup.Finalizers) == 0 {
+		nodeGroup.Finalizers = append(nodeGroup.Finalizers, finalizerID)
+	}
+
+	if len(nodeGroup.Spec.AutoFindNodeKeys) > 0 {
+		utils.AutoFindNodeKeysbyNodeGroup(siteManager.kubeClient, siteManager.crdClient, nodeGroup)
+	}
+
+	units, err := utils.GetUnitsByNodeGroup(siteManager.kubeClient, siteManager.crdClient, nodeGroup)
 	if err != nil {
 		if strings.Contains(err.Error(), "not found") {
 			units = []string{}
@@ -50,18 +58,13 @@ func (siteManager *SitesManagerDaemonController) addNodeGroup(obj interface{}) {
 		}
 	}
 
-	// todo: set unit
-
-	nodeGroupStatus := &nodeGroup.Status
-	nodeGroupStatus.NodeUnits = units
-	nodeGroupStatus.UnitNumber = len(units)
-	_, err = siteManager.crdClient.SiteV1().NodeGroups().UpdateStatus(context.TODO(), nodeGroup, metav1.UpdateOptions{})
+	nodeGroup.Status.NodeUnits = units
+	nodeGroup.Status.UnitNumber = len(units)
+	_, err = siteManager.crdClient.SiteV1alpha1().NodeGroups().UpdateStatus(context.TODO(), nodeGroup, metav1.UpdateOptions{})
 	if err != nil {
 		klog.Errorf("Update nodeGroup: %s error: %#v", nodeGroup.Name, err)
 		return
 	}
-
-	//todo: Add nodegroup annotations to unit
 
 	klog.V(4).Infof("Add nodeGroup: %s success.", nodeGroup.Name)
 }
@@ -71,14 +74,27 @@ func (siteManager *SitesManagerDaemonController) updateNodeGroup(oldObj, newObj 
 	curNodeGroup := newObj.(*sitev1.NodeGroup)
 	klog.V(4).Infof("Get oldNodeGroup: %s, curNodeGroup: %s", util.ToJson(oldNodeGroup), util.ToJson(curNodeGroup))
 
+	if len(curNodeGroup.Finalizers) == 0 {
+		curNodeGroup.Finalizers = append(curNodeGroup.Finalizers, finalizerID)
+	}
+
+	if curNodeGroup.DeletionTimestamp != nil {
+		siteManager.deleteNodeGroup(curNodeGroup) //todo
+		return
+	}
+
 	if oldNodeGroup.ResourceVersion == curNodeGroup.ResourceVersion {
 		return
 	}
 
+	if len(curNodeGroup.Spec.AutoFindNodeKeys) > 0 {
+		utils.AutoFindNodeKeysbyNodeGroup(siteManager.kubeClient, siteManager.crdClient, curNodeGroup)
+	}
 	/*
 		curNodeGroup
 	*/
-	units, err := utils.GetUnitsByNodeGroup(siteManager.crdClient, curNodeGroup)
+
+	units, err := utils.GetUnitsByNodeGroup(siteManager.kubeClient, siteManager.crdClient, curNodeGroup)
 	if err != nil {
 		if strings.Contains(err.Error(), "not found") {
 			units = []string{}
@@ -89,12 +105,9 @@ func (siteManager *SitesManagerDaemonController) updateNodeGroup(oldObj, newObj 
 		}
 	}
 
-	// todo: set unit
-
-	nodeGroupStatus := &curNodeGroup.Status
-	nodeGroupStatus.NodeUnits = units
-	nodeGroupStatus.UnitNumber = len(units)
-	_, err = siteManager.crdClient.SiteV1().NodeGroups().UpdateStatus(context.TODO(), curNodeGroup, metav1.UpdateOptions{})
+	curNodeGroup.Status.NodeUnits = units
+	curNodeGroup.Status.UnitNumber = len(units)
+	_, err = siteManager.crdClient.SiteV1alpha1().NodeGroups().UpdateStatus(context.TODO(), curNodeGroup, metav1.UpdateOptions{})
 	if err != nil {
 		klog.Errorf("Update nodeGroup: %s error: %#v", curNodeGroup.Name, err)
 		return
@@ -120,9 +133,22 @@ func (siteManager *SitesManagerDaemonController) deleteNodeGroup(obj interface{}
 		}
 	}
 
-	// todo: delete set unit
+	// check all nodes, if which have the label with nodegroup name then remove
+	for _, nu := range nodeGroup.Status.NodeUnits {
 
-	// todo: delete nodegroup annotations set in unit
+		obj, err := siteManager.crdClient.SiteV1alpha1().NodeUnits().Get(context.TODO(), nu, metav1.GetOptions{})
+		if err != nil {
+			klog.Error("List nodeunit fail ", err)
+		}
+		if obj.Spec.SetNode.Labels != nil {
+			delete(obj.Spec.SetNode.Labels, nodeGroup.Name)
+		}
+		_, err = siteManager.crdClient.SiteV1alpha1().NodeUnits().Update(context.TODO(), obj, metav1.UpdateOptions{})
+		if err != nil {
+			klog.Error("Update nodeunit fail ", err)
+		}
+	}
 
 	klog.V(4).Infof("Delete NodeGroup: %s succes.", nodeGroup.Name)
+	return
 }

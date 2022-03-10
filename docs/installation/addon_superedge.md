@@ -54,8 +54,8 @@ Download the edgeadm static installation package on any Master node, and copy it
 
 >   Pay attention to modify the "arch=amd64" parameter, currently supports [amd64, arm64], download the corresponding architecture of your own machine, and other parameters remain unchanged
 
-```powershell
-arch=amd64 version=v0.6.0 && rm -rf edgeadm-linux-* && wget https://superedge-1253687700.cos.ap-guangzhou.myqcloud.com/$version/$arch/edgeadm-linux-$arch-$version.tgz && tar -xzvf edgeadm-linux-* && cd edgeadm-linux-$arch-$version && ./edgeadm
+```
+arch=amd64 version=v0.7.0 kubernetesVersion=1.20.6 && rm -rf edgeadm-linux-* && wget https://superedge-1253687700.cos.ap-guangzhou.myqcloud.com/$version/$arch/edgeadm-linux-$arch-$version-k8s-$kubernetesVersion.tgz && tar -xzvf edgeadm-linux-* && cd edgeadm-linux-$arch-$version-k8s-$kubernetesVersion && ./edgeadm
 ```
 >   Currently supports amd64 and arm64 systems. For other systems, you can compile edgeadm and make corresponding system installation packages. For details, please refer to [One-click installation of edge Kubernetes cluster](https://github.com/superedge/superedge/blob/main/ docs/installation/install_edge_kubernetes_CN.md) 5. Customize the Kubernetes static installation package
 
@@ -170,6 +170,6 @@ Run 'kubectl get nodes' on the control-plane to see this node join the cluster.
 ```
 If there is a problem in the execution process, the corresponding error message will be directly returned, and the addition of the node will be interrupted. You can use the `./edgeadm reset` command to roll back the operation of joining the node and rejoin.
 
->    Tips: After successful join, the edge node will be labeled: `superedge.io/edge-node=enable`, which is convenient for subsequent applications to select application scheduling to the edge node through nodeSelector;
+>    Tips: After successful join, the edge node will be labeled: `superedge.io/node-edge=enable`, which is convenient for subsequent applications to select application scheduling to the edge node through nodeSelector;
 
 If you have any problems with the above operations, you can join SuperEdge's [Slack](https://join.slack.com/t/superedge-workspace/shared_invite/zt-ldxnm7er-ptdpCXthOct_dYrzyXM3pw), [Google Forum](https://groups .google.com/g/superedge), WeChat group to communicate with us, and you can also submit [Issues](https://github.com/superedge/superedge/issues) to give us feedback on issues in the community.

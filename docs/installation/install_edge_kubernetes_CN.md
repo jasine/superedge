@@ -143,8 +143,8 @@
 
 >   注意修改"arch=amd64"参数，目前支持[amd64, arm64], 下载自己机器对应的体系结构，其他参数不变
 
-```shell
-arch=amd64 version=v0.6.0 && rm -rf edgeadm-linux-* && wget https://superedge-1253687700.cos.ap-guangzhou.myqcloud.com/$version/$arch/edgeadm-linux-$arch-$version.tgz && tar -xzvf edgeadm-linux-* && cd edgeadm-linux-$arch-$version && ./edgeadm
+```
+arch=amd64 version=v0.7.0 kubernetesVersion=1.20.6 && rm -rf edgeadm-linux-* && wget https://superedge-1253687700.cos.ap-guangzhou.myqcloud.com/$version/$arch/edgeadm-linux-$arch-$version-k8s-$kubernetesVersion.tgz && tar -xzvf edgeadm-linux-* && cd edgeadm-linux-$arch-$version-k8s-$kubernetesVersion && ./edgeadm
 ```
 安装包大约200M，关于安装包的详细信息可查看 **5. 自定义Kubernetes静态安装包**。
 >   要是下载安装包比较慢，可直接查看相应[SuperEdge相应版本](https://github.com/superedge/superedge/tags), 下载`edgeadm-linux-amd64/arm64-*.0.tgz`，并解压也是一样的。
@@ -174,6 +174,9 @@ arch=amd64 version=v0.6.0 && rm -rf edgeadm-linux-* && wget https://superedge-12
 -   --image-repository：镜像仓库地址
 
     >   要是superedge.tencentcloudcr.com/superedge 比较慢，可换成其他加速镜像仓库，只要能Pull下来kube-apiserver，kube-controller-manager，kube-scheduler，kube-proxy，etcd， pause……镜像就可以。
+
+-  --runtime: 节点安装的容器运行时
+    >   如果需要安装containerd运行时则需要替换添加`--runtime=containerd`参数，且替换连接为`https://superedge-1253687700.cos.ap-guangzhou.myqcloud.com/$version/$arch/edgeadm-linux-containerd-$arch-$version.tgz`
 
 其他参数和kubeadm含义完全相同，可按kubeadm的要求进行配置。
 
@@ -259,7 +262,7 @@ Run 'kubectl get nodes' on the control-plane to see this node join the cluster.
 ```
 执行过程中如果出现问题会直接返回相应的错误信息，并中断节点的添加，可使用`./edgeadm reset`命令回滚加入节点的操作，重新join。
 
->    提示：要是join的边缘节点，边缘节点join成功后都会给边缘节点打一个label: `superedge.io/edge-node=enable`，方便后续应用用nodeSelector选择应用调度到边缘节点；
+>    提示：要是join的边缘节点，边缘节点join成功后都会给边缘节点打一个label: `superedge.io/node-edge=enable`，方便后续应用用nodeSelector选择应用调度到边缘节点；
 >
 >   原生Kubernetes节点和kubeadm的join一样，不会做任何操作。
 
